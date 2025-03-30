@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>下载中心</title>
+    <style>
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+            transition: background-color 0.5s ease;
+        }
+        
+        .loading-container {
+            text-align: center;
+            transition: opacity 0.5s ease;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(243, 243, 243, 0.3);
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+            transition: transform 0.3s ease;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        .modal.show {
+            display: flex;
+            opacity: 1;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 400px;
+            text-align: center;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
+        }
+        
+        .modal.show .modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .captcha-container {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        
+        .captcha-text {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 5px;
+            padding: 15px 25px;
+            background-color: #f0f0f0;
+            position: relative;
+            transform: rotate(-5deg);
+            display: inline-block;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            transition: transform 0.3s ease;
+        }
+        
+        .captcha-text:hover {
+            transform: rotate(0deg) scale(1.05);
+        }
+        
+        .captcha-line {
+            position: absolute;
+            background-color: #333;
+            pointer-events: none;
+        }
+        
+        .download-container {
+            display: none;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        
+        .download-container.show {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .download-item {
+            margin: 15px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .download-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .download-btn {
+            padding: 8px 15px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .download-btn:hover {
+            background-color: #2980b9;
+            transform: scale(1.05);
+        }
+        
+        input[type="text"] {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 200px;
+            margin-right: 10px;
+            transition: border-color 0.3s ease;
+        }
+        
+        input[type="text"]:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+            transform: scale(1.05);
+        }
+        
+        .shake {
+            animation: shake 0.5s;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        .blue-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        .blue-screen.show {
+            display: flex;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-container" id="loading">
+        <div class="spinner"></div>
+        <p>正在获取下载链接...</p>
+    </div>
+    
+    <div class="modal" id="captchaModal">
+        <div class="modal-content">
+            <h2>怀疑你是人机</h2>
+            <p>请完成人机测试</p>
+            <div class="captcha-container">
+                <div id="captchaDisplay" class="captcha-text"></div>
+            </div>
+            <div style="margin-top: 20px;">
+                <input type="text" id="captchaInput" placeholder="请输入上方验证码">
+                <button id="verifyBtn">验证</button>
+            </div>
+            <p id="errorMsg" style="color: red; margin-top: 10px;"></p>
+        </div>
+    </div>
+    
+    <div class="download-container" id="downloadContainer">
+        <h2>下载列表</h2>
+        <div id="downloadList"></div>
+    </div>
+
+    <script>
+        // 显示加载状态
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                document.getElementById('loading').style.opacity = '0';
+                setTimeout(function() {
+                    document.getElementById('loading').style.display = 'none';
+                    showCaptchaModal();
+                }, 500);
+            }, 3000);
+        });
+        
+        // 显示验证码弹窗
+        function showCaptchaModal() {
+            const modal = document.getElementById('captchaModal');
+            setTimeout(function() {
+                modal.classList.add('show');
+            }, 50);
+            
+            // 生成随机4位字母验证码
+            const captcha = generateCaptcha();
+            const captchaDisplay = document.getElementById('captchaDisplay');
+            captchaDisplay.textContent = captcha;
+            
+            // 添加干扰线
+            addDistortionLines(captchaDisplay);
+            
+            // 验证按钮点击事件
+            document.getElementById('verifyBtn').addEventListener('click', function() {
+                const userInput = document.getElementById('captchaInput').value;
+                if (userInput.toLowerCase() === captcha.toLowerCase()) {
+                    modal.classList.remove('show');
+                    setTimeout(function() {
+                        modal.style.display = 'none';
+                        loadDownloadLinks();
+                    }, 500);
+                } else {
+                    document.getElementById('errorMsg').textContent = '验证码错误，请重试';
+                    captchaDisplay.classList.add('shake');
+                    setTimeout(function() {
+                        captchaDisplay.classList.remove('shake');
+                    }, 500);
+                    
+                    // 刷新验证码
+                    const newCaptcha = generateCaptcha();
+                    captchaDisplay.textContent = newCaptcha;
+                    addDistortionLines(captchaDisplay);
+
+                    // 模拟 Windows 错误和蓝屏
+                    simulateWindowsError();
+                }
+            });
+        }
+        
+        // 生成随机4位字母验证码
+        function generateCaptcha() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz';
+            let captcha = '';
+            for (let i = 0; i < 4; i++) {
+                captcha += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return captcha;
+        }
+        
+        // 添加干扰线
+        function addDistortionLines(container) {
+            // 清除之前的干扰线
+            const oldLines = container.querySelectorAll('.captcha-line');
+            oldLines.forEach(line => line.remove());
+            
+            // 添加新的干扰线
+            const containerRect = container.getBoundingClientRect();
+            const width = containerRect.width;
+            const height = containerRect.height;
+            
+            for (let i = 0; i < 8; i++) {
+                const line = document.createElement('div');
+                line.className = 'captcha-line';
+                
+                // 随机位置和角度
+                const x1 = Math.random() * width;
+                const y1 = Math.random() * height;
+                const x2 = Math.random() * width;
+                const y2 = Math.random() * height;
+                
+                // 计算线的长度和角度
+                const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+                const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+                
+                // 设置线的样式
+                line.style.width = `${length}px`;
+                line.style.height = `${Math.random() * 2 + 1}px`;
+                line.style.left = `${x1}px`;
+                line.style.top = `${y1}px`;
+                line.style.transform = `rotate(${angle}deg)`;
+                line.style.transformOrigin = '0 0';
+                line.style.opacity = Math.random() * 0.5 + 0.3;
+                
+                container.appendChild(line);
+            }
+        }
+        
+        // 加载下载链接
+        function loadDownloadLinks() {
+            fetch('./dlurl.txt')
+                .then(response => {
+                    if (!response.ok) throw new Error('无法加载下载链接');
+                    return response.text();
+                })
+                .then(text => {
+                    const downloadList = document.getElementById('downloadList');
+                    downloadList.innerHTML = '';
+                    
+                    // 解析下载链接
+                    const entries = text.split('\n').filter(entry => entry.trim() !== '');
+                    if (entries.length === 0) {
+                        downloadList.innerHTML = '<p>暂无下载链接</p>';
+                    } else {
+                        entries.forEach(entry => {
+                            try {
+                                const nameMatch = entry.match(/name=([^,]+)/);
+                                const urlMatch = entry.match(/url=([^}]+)/);
+                                
+                                if (nameMatch && urlMatch) {
+                                    const name = nameMatch[1].trim();
+                                    const url = urlMatch[1].trim();
+                                    
+                                    const item = document.createElement('div');
+                                    item.className = 'download-item';
+                                    item.innerHTML = `
+                                        <span>${name}</span>
+                                        <a href="${url}" class="download-btn" target="_blank">下载</a>
+                                    `;
+                                    downloadList.appendChild(item);
+                                }
+                            } catch (e) {
+                                console.error('解析下载链接出错:', e);
+                            }
+                        });
+                    }
+                    
+                    setTimeout(function() {
+                        document.getElementById('downloadContainer').classList.add('show');
+                    }, 50);
+                })
+                .catch(error => {
+                    const downloadList = document.getElementById('downloadList');
+                    downloadList.innerHTML = `<p style="color: red;">${error.message}</p>`;
+                    setTimeout(function() {
+                        document.getElementById('downloadContainer').classList.add('show');
+                    }, 50);
+                });
+        }
+        
+        // 防止验证码文本被选中
+        document.addEventListener('selectstart', function(e) {
+            if (e.target.classList.contains('captcha-text')) {
+                e.preventDefault();
+            }
+        });
+
+        // 模拟 Windows 10 错误提示窗口和蓝屏效果
+        function simulateWindowsError() {
+            // 创建错误提示窗口
+            const errorModal = document.createElement('div');
+            errorModal.className = 'modal';
+            errorModal.innerHTML = `
+                <div class="modal-content">
+                    <h2>Windows 错误</h2>
+                    <p>验证码错误，系统出现故障。</p>
+                    <button id="errorCloseBtn">关闭</button>
+                </div>
+            `;
+            document.body.appendChild(errorModal);
+
+            // 模拟蓝屏效果
+            const blueScreen = document.createElement('div');
+            blueScreen.className = 'blue-screen';
+            blueScreen.innerHTML = `
+                <h2>蓝屏错误</h2>
+                <p>系统出现严重错误，即将重启。</p>
+            `;
+            document.body.appendChild(blueScreen);
+
+            // 显示错误提示窗口
+            errorModal.classList.add('show');
+            document.getElementById('errorCloseBtn').addEventListener('click', function() {
+                errorModal.classList.remove('show');
+                setTimeout(function() {
+                    errorModal.style.display = 'none';
+                }, 500);
+
+                // 显示蓝屏效果
+                blueScreen.classList.add('show');
+                setTimeout(function() {
+                    blueScreen.style.display = 'none';
+                    document.body.style.backgroundColor = '#0078d7'; // 蓝屏背景颜色
+                    document.body.style.color = 'white'; // 蓝屏文字颜色
+                    document.body.innerHTML = `
+                        <h1 style="text-align: center; margin-top: 200px;">蓝屏错误</h1>
+                        <p style="text-align: center; font-size: 20px;">系统出现严重错误，即将重启。</p>
+                    `;
+                }, 1000);
+            });
+        }
+    </script>
+</body>
+</html>
