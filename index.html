@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download Page</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            background-color: #f5f5f5;
+        }
+        
+        .left-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+        }
+        
+        .right-panel {
+            flex: 2;
+            padding: 40px;
+            overflow-y: auto;
+            background-color: white;
+        }
+        
+        .download-btn {
+            padding: 15px 30px;
+            font-size: 18px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            text-align: center;
+        }
+        
+        .download-btn:hover {
+            background-color: #2980b9;
+        }
+        
+        h1 {
+            color: #3498db;
+            margin-top: 0;
+        }
+        
+        .logo {
+            margin-bottom: 30px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        #markdown-content {
+            line-height: 1.6;
+        }
+        
+        #markdown-content h2 {
+            color: #2c3e50;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        #markdown-content code {
+            background-color: #f8f8f8;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        
+        #markdown-content pre {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            
+            .left-panel, .right-panel {
+                flex: none;
+                width: 100%;
+            }
+            
+            .left-panel {
+                padding: 20px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="left-panel">
+        <div class="logo">快云下载中心</div>
+        <a href="https://aftree-sp.github.io/kajy/dl" class="download-btn">立即下载</a>
+        <p style="margin-top: 20px; text-align: center;">版本: v1.0.0</p>
+    </div>
+    
+    <div class="right-panel">
+        <div id="markdown-content">正在加载内容...</div>
+    </div>
+
+    <script>
+        // Function to fetch and display markdown content
+        async function loadMarkdown() {
+            try {
+                const response = await fetch('js.md');
+                if (!response.ok) {
+                    throw new Error('Failed to load markdown file');
+                }
+                const markdownText = await response.text();
+                document.getElementById('markdown-content').innerHTML = marked.parse(markdownText);
+            } catch (error) {
+                document.getElementById('markdown-content').innerHTML = 
+                    `<p style="color: red;">无法加载内容: ${error.message}</p>`;
+            }
+        }
+
+        // Load marked.js library and then load markdown content
+        function initialize() {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
+            script.onload = loadMarkdown;
+            script.onerror = () => {
+                document.getElementById('markdown-content').innerHTML = 
+                    '<p style="color: red;">无法加载Markdown解析器</p>';
+            };
+            document.head.appendChild(script);
+        }
+
+        // Start the initialization when page loads
+        window.addEventListener('DOMContentLoaded', initialize);
+    </script>
+</body>
+</html>
