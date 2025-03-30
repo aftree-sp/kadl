@@ -350,54 +350,31 @@
         
         // 加载下载链接
         function loadDownloadLinks() {
-            fetch('./dlurl.txt')
-                .then(response => {
-                    if (!response.ok) throw new Error('无法加载下载链接');
-                    return response.text();
-                })
-                .then(text => {
-                    const downloadList = document.getElementById('downloadList');
-                    downloadList.innerHTML = '';
-                    
-                    // 解析下载链接
-                    const entries = text.split('\n').filter(entry => entry.trim() !== '');
-                    if (entries.length === 0) {
-                        downloadList.innerHTML = '<p>暂无下载链接</p>';
-                    } else {
-                        entries.forEach(entry => {
-                            try {
-                                const nameMatch = entry.match(/name=([^,]+)/);
-                                const urlMatch = entry.match(/url=([^}]+)/);
-                                
-                                if (nameMatch && urlMatch) {
-                                    const name = nameMatch[1].trim();
-                                    const url = urlMatch[1].trim();
-                                    
-                                    const item = document.createElement('div');
-                                    item.className = 'download-item';
-                                    item.innerHTML = `
-                                        <span>${name}</span>
-                                        <a href="${url}" class="download-btn" target="_blank">下载</a>
-                                    `;
-                                    downloadList.appendChild(item);
-                                }
-                            } catch (e) {
-                                console.error('解析下载链接出错:', e);
-                            }
-                        });
-                    }
-                    
-                    setTimeout(function() {
-                        document.getElementById('downloadContainer').classList.add('show');
-                    }, 50);
-                })
-                .catch(error => {
-                    const downloadList = document.getElementById('downloadList');
-                    downloadList.innerHTML = `<p style="color: red;">${error.message}</p>`;
-                    setTimeout(function() {
-                        document.getElementById('downloadContainer').classList.add('show');
-                    }, 50);
+            // 内置下载链接
+            const downloadLinks = [
+                { name: "快云反击.exe", url: "https://www.123684.com/s/s6PLVv-bCMJA" }
+            ];
+
+            const downloadList = document.getElementById('downloadList');
+            downloadList.innerHTML = '';
+            
+            if (downloadLinks.length === 0) {
+                downloadList.innerHTML = '<p>暂无下载链接</p>';
+            } else {
+                downloadLinks.forEach(entry => {
+                    const item = document.createElement('div');
+                    item.className = 'download-item';
+                    item.innerHTML = `
+                        <span>${entry.name}</span>
+                        <a href="${entry.url}" class="download-btn" target="_blank">下载</a>
+                    `;
+                    downloadList.appendChild(item);
                 });
+            }
+            
+            setTimeout(function() {
+                document.getElementById('downloadContainer').classList.add('show');
+            }, 50);
         }
         
         // 防止验证码文本被选中
